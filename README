@@ -1,0 +1,11 @@
+= deliciousposter
+
+This tool allow you to tag interesting item in delicious, and once in a while, to push them onto your blog.
+
+== Installation
+
+You will need python-blogger[http://code.google.com/p/python-blogger/] and deliciousAPI[http://www.michael-noll.com/wiki/Del.icio.us_Python_API]
+
+== Usage
+
+python deliciousposter delicious_login wordpress_xmlrpc_endpoint wp_login wp_password [delicious_tag] [weekly_posts_title] 
