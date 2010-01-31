@@ -9,13 +9,17 @@ def main(argv=None):
         argv = sys.argv
     try:
         try:
-            opts, args = getopt.getopt(argv[1:], "h", ["help"])
+            opts, args = getopt.getopt(argv[1:], "ht", ["help"])
         except getopt.error, msg:
              raise Usage(msg)
         
+        test = False;
         for o, a in opts:
             if o in ("-h", "--help"):
-                raise Usage(__module__ +' delicious_login wordpress_xmlrpc_endpoint wp_login wp_password [delicious_tag] [weekly_posts_title] ')
+                raise Usage(__file__ +' [--test -t] delicious_login wordpress_xmlrpc_endpoint wp_login wp_password [delicious_tag] [weekly_posts_title] ')
+            if o in ("-t", "--test"):
+                print >>sys.stdout, 'TEST MODE'
+                test = True
         if len(args)<4 :
             raise Usage("arguments missing")        
         
@@ -65,7 +69,10 @@ def main(argv=None):
         
         if nb>0:
             newpost = { 'title': weeklypost_title +" for " + datetime.date.today().strftime("%y/%m/%d"),'description': html }
-            blog.new_post(newpost)
+            if test:
+                print >>sys.stdout, newpost
+            else:
+                blog.new_post(newpost)
     
     except Usage, err:
         print >>sys.stderr, err.msg
