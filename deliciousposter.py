@@ -1,3 +1,4 @@
+#!/usr/bin/env python -c
 import sys, getopt
 
 class Usage(Exception):
@@ -9,17 +10,20 @@ def main(argv=None):
         argv = sys.argv
     try:
         try:
-            opts, args = getopt.getopt(argv[1:], "ht", ["help"])
+            opts, args = getopt.getopt(argv[1:], "htc", ["help", "test", "confirm"])
         except getopt.error, msg:
              raise Usage(msg)
         
         test = False;
+        confirmit=False
         for o, a in opts:
             if o in ("-h", "--help"):
-                raise Usage(__file__ +' [--test -t] delicious_login wordpress_xmlrpc_endpoint wp_login wp_password [delicious_tag] [weekly_posts_title] ')
+                raise Usage(__file__ +' [--test -t] [--confirm -c] delicious_login wordpress_xmlrpc_endpoint wp_login wp_password [delicious_tag] [weekly_posts_title] ')
             if o in ("-t", "--test"):
                 print >>sys.stdout, 'TEST MODE'
                 test = True
+            if o in ("-c", "--confirm"):
+                confirmit = True
         if len(args)<4 :
             raise Usage("arguments missing")        
         
@@ -59,11 +63,14 @@ def main(argv=None):
         html = "<div><dl>"
         nb=0
         #print user_metadata.bookmarks
+        titles = []
         for post in user_metadata.bookmarks:
             if any(tag == delicious_tag for tag in post[itags]) and post[idate] > lastpub:
-                #print post
-                html = html + "<dt>" + "<a href=" + post[iurl] + ">" + (len(post[ititle])>0 and post[ititle] or (len(post[icomment]) < 100 and post[icomment] or "link"))   + "</a>"
-                html = html + "<dd>" +  post[icomment]
+                html +=  "<dt>" + "<a href=\"" + post[iurl] + "\">" 
+                titles.append(len(post[ititle])>0 and post[ititle] or (len(post[icomment]) < 100 and post[icomment] or "link"))
+                html +=  titles[-1]
+                html +=  "</a></dt>"
+                html += "<dd>" +  post[icomment] + "</dd>"
                 nb = nb + 1
         html = html + "</dl></div>"
         
@@ -71,9 +78,17 @@ def main(argv=None):
             newpost = { 'title': weeklypost_title +" for " + datetime.date.today().strftime("%y/%m/%d"),'description': html }
             if test:
                 print >>sys.stdout, newpost
-            else:
+            else:                
+                if confirmit:
+                    print titles
+                    if str(raw_input("Want to publsih this ? Type y,n\n")) != "y":
+                        print "canceling upload"
+                        return
                 blog.new_post(newpost)
-    
+        else:
+            if confirmit:
+                print "There was nothing to be sent and confirm"
+        
     except Usage, err:
         print >>sys.stderr, err.msg
         print >>sys.stderr, "for help use --help"
