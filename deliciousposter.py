@@ -1,5 +1,8 @@
 #!/usr/bin/env python -c
 import sys, getopt
+from functools import reduce, partial
+maximum = partial(reduce, max)
+
 
 class Usage(Exception):
     def __init__(self, msg):
@@ -53,12 +56,16 @@ def main(argv=None):
         user_metadata = dapi.get_user(deliciouslogin)
         
         import datetime
-        lastpub = datetime.datetime.min
         recentposts = blog.get_recent_posts()
-        for post in recentposts:
-            if string.find(post['title'], weeklypost_title) > -1:
-                lastpub = post['date_created_gmt']
+        recentposts = [post for post in recentposts 
+                        if string.find(post['title'], weeklypost_title) > -1]
+        lastpub = maximum([post['date_created_gmt'] for post in recentposts],
+                           datetime.datetime(1900, 01, 01))
         
+        if(lastpub == datetime.datetime(1900, 01, 01)):
+          if str(raw_input("No previous posts with tag " +weeklypost_title +" has been found do you want to continue ? Type y,n\n")) != "y":
+              print "canceling upload"
+              return
         
         html = "<div><dl>"
         nb=0
